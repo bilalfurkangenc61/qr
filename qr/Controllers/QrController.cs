@@ -17,14 +17,17 @@ namespace qr.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var model = new ContactInfo();
-            return View(model);
+            ViewBag.Departments = qr.Models.ContactInfo.Departments;
+            ViewBag.Titles = qr.Models.ContactInfo.Titles;
+            return View();
         }
 
         [HttpPost]
-        public IActionResult Generate(ContactInfo model)
+        public IActionResult Generate(qr.Models.ContactInfo model)
         {
-           
+            ViewBag.Departments = qr.Models.ContactInfo.Departments;
+            ViewBag.Titles = qr.Models.ContactInfo.Titles;
+
             ModelState.Clear();
 
             if (string.IsNullOrEmpty(model.FirstName))

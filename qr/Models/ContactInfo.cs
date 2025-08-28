@@ -1,4 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.VisualBasic;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using static QRCoder.PayloadGenerator.SwissQrCode;
 
 namespace qr.Models
 {
@@ -34,5 +38,52 @@ namespace qr.Models
                 return string.Empty;
             }
         }
+
+     
+        public static List<string> Departments { get; } = new List<string>
+        {
+            "BT Operasyon Yönetimi Müdürlüğü",
+            "Altyapı Yönetimi Müdürlüğü",
+            "Altyapı Yönetimi Müdürlüğü",
+            "Bilgi Güvenliği ve Altyapı Md. Sistem Uygulama ve Altyapı",
+            "Bilgi Güvenliği ve Uyum Müdürlüğü",
+            "Bilgi Teknolojileri Genel Müdür Yardımcılığı",
+            "BT Operasyon Yönetimi Müdürlüğü",
+            "BT Proje Yönetimi ve Koordinasyon Müdürlüğü",
+            "Finansal İtiraz ve İşlem Güvenliği Yönetimi Müdürlüğü",
+            "Finansal Muhasebe ve Vergi Yönetimi Md. Finansal Muhasebe ve Bütçe Yönetimi",
+            "Finansal Muhasebe ve Vergi Yönetimi Müdürlüğü",
+            "Finansal Yönetim İnsan Kaynakları ve İdari İşler Genel Müdür Yardımcılığı",
+            "İç Kontrol ve Denetim Müdürlüğü",
+            "İnsan Kaynakları Organizasyon ve Performans Yönetimi Md. İdari İşler",
+            "İnsan Kaynakları Organizasyon ve Performans Yönetimi Müdürlüğü",
+            "İşyeri ve Müşteri Operasyonları Müdürlüğü",
+            "Operasyon Yönetimi Genel Müdür Yardımcılığı",
+            "Pazarlama Satış ve Ürün Yönetimi Genel Müdür Yardımcılığı",
+            "Pazarlama ve İş Geliştirme Müdürlüğü",
+            "Proje ve Yazılım Uygulama Yönetimi Md. İş Analizi ve Yazılım",
+            "Proje ve Yazılım Uygulama Yönetimi Md. Proje ve Süreç Yönetimi",
+            "Risk Yönetimi ve Uyum Müdürlüğü",
+            "Saha Satış Yönetimi Müdürlüğü",
+            "Takas ve Mutabakat Müdürlüğü",
+            "Uygulama Geliştirme Müdürlüğü",
+        };
+
+        public static List<string> Titles { get; } = new List<string>
+        {
+          "Bölüm Müdürü",
+          "BT Bölüm Müdürü",
+          "BT Teknik Yönetici",
+          "Destek Personeli",
+          "Genel Müdür",
+          "Genel Müdür Ve Yön. Krl. Üyesi",
+          "Genel Müdür Yardımcısı",
+          "Kıdemli Uzman",
+          "Servis Asistanı",
+          "Uzman",
+          "Uzman Yardımcısı",
+          "Yönetim Kurulu Üyesi",
+          "Yönetmen"
+        };
     }
 }
