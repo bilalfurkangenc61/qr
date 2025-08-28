@@ -1,14 +1,22 @@
 ﻿@model qr.Models.ContactInfo
+
 @{
+
     ViewData["Title"] = "vCard QR Generator";
+
 }
 
+
+
 <style>
+
     .qr-container {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        padding: 0.5rem 0;
+        padding: 2rem 0;
     }
+
+
 
     .card-custom {
         border: none;
@@ -19,6 +27,8 @@
         margin-top: 10px;
     }
 
+
+
     .card-header-custom {
         background: linear-gradient(135deg, #4f86f7 0%, #2c5aa0 100%);
         color: white;
@@ -28,6 +38,13 @@
     }
 
 
+
+    #LastName {
+        text-transform: uppercase;
+    }
+
+
+
     .preview-card {
         background: #fff;
         border-radius: 12px;
@@ -35,46 +52,51 @@
         display: flex;
         justify-content: space-between;
         align-items: stretch;
-        padding: 20px;
-        gap: 20px;
+        padding: 25px;
+        gap: 25px;
         width: 100%;
         max-width: 700px;
-        margin: 15px auto 0 auto;
+        margin: 25px auto 0 auto;
         min-height: 280px;
     }
+
+
 
     .preview-left-section {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        justify-content: space-between;
     }
 
-  
+
+
     .preview-logo-section {
         width: 100%;
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        padding: 10px 0;
     }
+
+
 
     .preview-logo {
         width: auto;
-        height: 120px;
+        height: 100px;
         max-width: 100%;
         object-fit: contain;
-      
     }
 
-  
+
+
     .preview-info-col {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         gap: 8px;
-        flex: 1;
     }
+
+
 
     .preview-name {
         font-weight: bold;
@@ -84,7 +106,9 @@
         line-height: 1.2;
     }
 
-    .preview-dept {
+
+
+    .preview-dept, .preview-title {
         color: #1976d2;
         font-size: 1.1rem;
         margin: 0;
@@ -92,12 +116,7 @@
         line-height: 1.2;
     }
 
-    .preview-title {
-        color: #1976d2;
-        font-size: 1.1rem;
-        margin: 0;
-        line-height: 1.2;
-    }
+
 
     .preview-email, .preview-phone {
         font-size: 1rem;
@@ -110,14 +129,20 @@
         gap: 8px;
     }
 
+
+
         .preview-email a {
             color: #1976d2;
             text-decoration: none;
         }
 
+
+
             .preview-email a:hover {
                 text-decoration: underline;
             }
+
+
 
         .preview-email i, .preview-phone i {
             color: #1976d2;
@@ -125,223 +150,465 @@
             flex-shrink: 0;
         }
 
-   
+
+
     .preview-qr {
-        flex: 0 0 250px;
+        flex: 0 0 240px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: #f8f9ff;
         border-radius: 8px;
         padding: 15px;
-        height: 100%;
-        min-height: 300px;
     }
+
+
 
         .preview-qr img {
             width: 100%;
-            height: 100%;
+            height: auto;
             max-width: 220px;
-            max-height: 220px;
             object-fit: contain;
             border-radius: 4px;
         }
 
     @@media (max-width: 768px) {
-        .preview-card
 
-    {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        min-height: auto;
-        padding: 15px;
-    }
-
-    .preview-left-section {
-        width: 100%;
-        text-align: center;
-    }
-
-    .preview-logo-section {
-        justify-content: center;
-    }
-
-    .preview-qr {
-        flex: none;
-        width: 200px;
-        height: 200px;
-        min-height: auto;
-    }
-
-        .preview-qr img {
-            max-width: 180px;
-            max-height: 180px;
+        .preview-card {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: auto;
+            padding: 20px;
         }
 
-    .preview-email, .preview-phone {
-        justify-content: center;
+        .preview-left-section {
+            width: 100%;
+            text-align: center;
+            gap: 20px;
+            justify-content: flex-start;
+        }
+
+        .preview-logo-section {
+            justify-content: center;
+        }
+
+        .preview-qr {
+            flex: none;
+            width: 200px;
+            height: 200px;
+        }
+
+            .preview-qr img {
+                max-width: 180px;
+                max-height: 180px;
+            }
+
+        .preview-email, .preview-phone {
+            justify-content: center;
+        }
+
+        .preview-logo {
+            height: 65px;
+        }
     }
 
-    .preview-logo {
-        height: 65px;
-    }
-
-    }
-
-    @@media (max-width: 480px) {
-        .preview-card
-
-    {
-        margin: 10px;
-        padding: 12px;
-    }
-
-    .preview-name {
-        font-size: 1.2rem;
-    }
-
-    .preview-dept, .preview-title {
-        font-size: 1rem;
-    }
-
-    .preview-email, .preview-phone {
-        font-size: 0.9rem;
-    }
-
-    }
 </style>
 
+
+
 <div class="qr-container">
+
     <div class="container">
+
         <div class="row justify-content-center">
-            <div class="col-lg-8 col-xl-6">
+
+            <div class="col-lg-8 col-xl-7">
+
                 <div class="card card-custom">
+
                     <div class="card-header card-header-custom text-center">
+
                         <h2 class="mb-0">
+
                             <a class="navbar-brand mx-auto" asp-area="" asp-controller="Qr" asp-action="Index" style="height: 60px;">
+
                                 <img src="~/LOGO.png" alt="Ödeme Sistemi" style="height: 50px; width:150px;">
+
                             </a>
+
                         </h2>
-                        <p class="mb-0 mt-2 opacity-55">Halk Elektronik Para ve Ödeme Hizmetleri QR Oluşturucu</p>
+
+                        <p class="mb-0 mt-2 opacity-75">Halk Elektronik Para ve Ödeme Hizmetleri QR Oluşturucu</p>
+
                     </div>
-                    <div class="card-body p-3">
-                        <form asp-controller="Qr" asp-action="Generate" method="post">
+
+                    <div class="card-body p-4">
+
+                        <form id="qr-form" asp-controller="Qr" asp-action="Generate" method="post">
+
                             <div class="row">
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="FirstName" class="form-label fw-bold text-primary">İsim *</label>
+
                                     <input asp-for="FirstName" class="form-control" required />
+
                                 </div>
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="LastName" class="form-label fw-bold text-primary">Soyisim *</label>
+
                                     <input asp-for="LastName" class="form-control" required />
+
                                 </div>
+
                             </div>
+
                             <div class="row">
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="Department" class="form-label fw-bold text-primary">Müdürlük *</label>
+
                                     <input asp-for="Department" class="form-control" />
+
                                 </div>
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="Title" class="form-label fw-bold text-primary">Ünvan *</label>
+
                                     <input asp-for="Title" class="form-control" />
+
                                 </div>
+
                             </div>
+
                             <div class="row">
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="MobilePhone" class="form-label fw-bold text-primary">Cep</label>
-                                    <input asp-for="MobilePhone" class="form-control" />
+
+                                    <input asp-for="MobilePhone" class="form-control" placeholder="05XX XXX XX XX" maxlength="14" />
+
                                 </div>
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="LandlinePhone" class="form-label fw-bold text-primary">Sabit</label>
-                                    <input asp-for="LandlinePhone" class="form-control" />
+
+                                    <input asp-for="LandlinePhone" class="form-control" placeholder="0XXX XXX XX XX" maxlength="14" />
+
                                 </div>
+
                             </div>
+
                             <div class="row">
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="Email" class="form-label fw-bold text-primary">E-posta *</label>
+
                                     <input asp-for="Email" class="form-control" type="email" />
+
                                 </div>
-                                <div class="col-md-6 mb-2">
+
+                                <div class="col-md-6 mb-3">
+
                                     <label asp-for="OutputType" class="form-label fw-bold text-primary">Format</label>
+
                                     <select asp-for="OutputType" class="form-select">
+
                                         <option value="PNG">PNG</option>
+
                                         <option value="SVG">SVG</option>
+
                                     </select>
+
                                 </div>
+
                             </div>
+
                             <div class="text-center mt-3">
-                                <button type="submit" class="btn btn-primary btn-generate">QR Kod Oluştur</button>
+
+                                <button type="submit" class="btn btn-primary btn-lg px-5">QR Kod Oluştur</button>
+
                             </div>
+
                         </form>
 
+
+
                         @if (ViewBag.IsGenerated == true)
+
                         {
+
+                            <hr class="my-4">
+
                             <div class="preview-card" id="download-card">
-                               
+
                                 <div class="preview-left-section">
-                                   
+
                                     <div class="preview-logo-section">
-                                        <img src="~/HALKODE_LOGO-01.png" alt="Halk Öde" class="preview-logo" />
+
+                                        <img src="~/HALKODE_LOGO-01.png" alt="Deneme" class="preview-logo" />
+
                                     </div>
 
-                                   
                                     <div class="preview-info-col">
+
                                         <div class="preview-name">@Model.FirstName @Model.LastName</div>
+
                                         <div class="preview-dept">@Model.Department</div>
+
                                         <div class="preview-title">@Model.Title</div>
+
                                         <div class="preview-email">
+
                                             <i class="fas fa-envelope"></i>
+
                                             <a href="mailto:@Model.Email">@Model.Email</a>
+
                                         </div>
+
                                         <div class="preview-phone">
+
                                             <i class="fas fa-phone"></i>
+
                                             <span>
+
                                                 @if (!string.IsNullOrWhiteSpace(Model.LandlinePhone))
+
                                                 {
-                                                    @Model.LandlinePhone
+
+                                                    @FormatPhoneNumberForDisplay(Model.LandlinePhone)
+
                                                 }
+
                                                 @if (!string.IsNullOrWhiteSpace(Model.LandlinePhone) && !string.IsNullOrWhiteSpace(Model.MobilePhone))
+
                                                 {
+
                                                     <span> – </span>
+
                                                 }
+
                                                 @if (!string.IsNullOrWhiteSpace(Model.MobilePhone))
+
                                                 {
-                                                    @Model.MobilePhone
+
+                                                    @FormatPhoneNumberForDisplay(Model.MobilePhone)
+
                                                 }
+
                                             </span>
+
                                         </div>
+
                                     </div>
+
                                 </div>
 
-                            
                                 <div class="preview-qr">
+
                                     <img src="@ViewBag.QrImageData" alt="vCard QR Code" />
+
                                 </div>
+
                             </div>
-                            <div class="text-center mt-2">
-                                <button id="download-btn" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-download me-1"></i> Kartı İndir
+
+                            <div class="text-center mt-3">
+
+                                <button id="download-btn" class="btn btn-outline-primary">
+
+                                    <i class="fas fa-download me-2"></i> Kartı İndir
+
                                 </button>
+
                             </div>
+
                         }
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
+
 @section Scripts {
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
-        document.getElementById('download-btn')?.addEventListener('click', function () {
-            html2canvas(document.getElementById('download-card')).then(function (canvas) {
-                var link = document.createElement('a');
-                link.download = 'kart.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+
+
+            const lastNameInput = document.getElementById('LastName');
+
+            if (lastNameInput) {
+
+                lastNameInput.addEventListener('input', function () {
+
+                   this.value = this.value.toUpperCase();
+
+                });
+
+            }
+
+
+
+            const phoneFormatter = function (event) {
+
+                const input = event.target;
+
+                let numbers = input.value.replace(/\D/g, '');
+
+                let formattedInput = '';
+
+                if (numbers.length > 0) { formattedInput = numbers.substring(0, 4); }
+
+                if (numbers.length > 4) { formattedInput += ' ' + numbers.substring(4, 7); }
+
+                if (numbers.length > 7) { formattedInput += ' ' + numbers.substring(7, 9); }
+
+                if (numbers.length > 9) { formattedInput += ' ' + numbers.substring(9, 11); }
+
+                input.value = formattedInput;
+
+            };
+
+
+
+            const mobileInput = document.getElementById('MobilePhone');
+
+            const landlineInput = document.getElementById('LandlinePhone');
+
+
+
+            if (mobileInput) { mobileInput.addEventListener('input', phoneFormatter); }
+
+            if (landlineInput) { landlineInput.addEventListener('input', phoneFormatter); }
+
+
+
+            const mainForm = document.getElementById('qr-form');
+
+            if(mainForm) {
+
+                mainForm.addEventListener('submit', function() {
+
+                    [mobileInput, landlineInput].forEach(input => {
+
+                        if (input && input.value) {
+
+                            let cleanedValue = input.value.replace(/\D/g, '');
+
+                            if (cleanedValue.startsWith('0') && cleanedValue.length === 11) {
+
+                                cleanedValue = cleanedValue.substring(1);
+
+                            }
+
+                            input.value = cleanedValue;
+
+                        }
+
+                    });
+
+                });
+
+            }
+
         });
+
+
+
+        document.getElementById('download-btn')?.addEventListener('click', function () {
+
+            const cardElement = document.getElementById('download-card');
+
+            html2canvas(cardElement, {
+
+                scale: 2
+
+            }).then(function (canvas) {
+
+                var link = document.createElement('a');
+
+                link.download = 'kartvizit.png';
+
+                link.href = canvas.toDataURL("image/png");
+
+                link.click();
+
+            });
+
+        });
+
     </script>
+
+}
+
+
+
+@functions {
+
+    public string FormatPhoneNumberForDisplay(string number)
+
+    {
+
+        if (string.IsNullOrWhiteSpace(number))
+
+        {
+
+            return "";
+
+        }
+
+
+
+
+
+        if (number.Length == 10)
+
+        {
+
+            number = "0" + number;
+
+        }
+
+
+
+   
+
+        if (number.Length == 11)
+
+        {
+
+            return $"{number.Substring(0, 4)} {number.Substring(4, 3)} {number.Substring(7, 2)} {number.Substring(9, 2)}";
+
+        }
+
+
+
+     
+
+        return number;
+
+    }
+
 }

@@ -10,9 +10,9 @@ namespace qr.Models
         [Required(ErrorMessage = "Soyisim gereklidir")]
         public string LastName { get; set; } = string.Empty;
 
-        public string Title { get; set; } = string.Empty; 
+        public string Title { get; set; } = string.Empty;
 
-        public string Department { get; set; } = string.Empty; 
+        public string Department { get; set; } = string.Empty;
 
         public string MobilePhone { get; set; } = string.Empty;
 
