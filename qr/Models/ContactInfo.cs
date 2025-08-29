@@ -44,7 +44,6 @@ namespace qr.Models
         {
             "BT Operasyon Yönetimi Müdürlüğü",
             "Altyapı Yönetimi Müdürlüğü",
-            "Altyapı Yönetimi Müdürlüğü",
             "Bilgi Güvenliği ve Altyapı Md. Sistem Uygulama ve Altyapı",
             "Bilgi Güvenliği ve Uyum Müdürlüğü",
             "Bilgi Teknolojileri Genel Müdür Yardımcılığı",

@@ -157,17 +157,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f8f9ff;
+        margin-top:10px;
         border-radius: 8px;
-        padding: 12px;
+      
     }
 
 
 
         .preview-qr img {
-            width: 100%;
+            width: 110%;
             height: auto;
-            max-width: 160px;
+            max-width: 600px;
             object-fit: contain;
             border-radius: 4px;
         }
@@ -270,16 +270,26 @@
 
                             <div class="row">
 
-                                @* Müdürlük Dropdown *@
+                                
+
                                 <div class="col-md-6 mb-3">
-                                    <label asp-for="Department" class="form-label fw-bold text-primary">Müdürlük *</label>
-                                    <select asp-for="Department" class="form-select" required>
+
+                                    <label asp-for="Department" class="form-label fw-bold text-primary">Müdürlük</label>
+
+                                    <select asp-for="Department" class="form-select">
+
                                         <option value="">Seçiniz</option>
+
                                         @foreach (var dept in ViewBag.Departments as List<string>)
+
                                         {
+
                                             <option value="@dept">@dept</option>
+
                                         }
+
                                     </select>
+
                                 </div>
 
                                 @* Ünvan Dropdown *@
