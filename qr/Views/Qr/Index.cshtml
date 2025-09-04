@@ -2,20 +2,17 @@
 
 @{
     ViewData["Title"] = "vCard QR Generator";
-
-  
     string[] deptLines = Array.Empty<string>();
+
     if (!string.IsNullOrWhiteSpace(Model?.Department))
     {
         var words = Model.Department.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (words.Length <= 3)
         {
-           
             deptLines = words;
         }
         else
         {
-           
             int chunk = (int)Math.Ceiling(words.Length / 3.0);
             var line1 = string.Join(' ', words.Take(chunk));
             var line2 = string.Join(' ', words.Skip(chunk).Take(chunk));
@@ -98,33 +95,34 @@
         flex-direction: column;
         justify-content: flex-start;
         gap: 8px;
-        margin-left: 20px;
+        margin-left: 10px;
     }
 
     .preview-name {
         font-weight: bold;
-        color: #1a237e;
-        font-size: 1.05rem;
+        color: #1a50bc;
         margin: 0;
         line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-family: Arial;
+        font-size: 10px;
     }
 
     .preview-dept, .preview-title {
-        color: #1976d2;
-        font-size: 0.25rem;
+        color: #1565c0;
         margin: 0;
         font-weight: 400;
         line-height: 0.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-       
+        font-family: Arial;
+        font-size: 8px;
     }
 
-    .preview-email, .preview-phone {
+    .preview-phone {
         font-size: 0.92rem;
         margin: 0;
         word-break: break-all;
@@ -140,22 +138,25 @@
         margin-left: 60px;
     }
 
-        .preview-email a {
-            color: #1976d2;
-            text-decoration: none;
+    .preview-email a {
+        color: #1565c0;
+        text-decoration: underline;
+        word-break: break-all;
+        white-space: normal;
+        display: inline-block;
+        max-width: 100%;
+        margin-right: 10px;
+    }
+
+        .preview-email a:hover {
+            text-decoration: underline;
         }
 
-            .preview-email a:hover {
-                text-decoration: underline;
-            }
-
-        .preview-email i, .preview-phone i {
-            color: #1976d2;
-            width: 16px;
-            flex-shrink: 0;
-            
-        }
-
+    .preview-email i, .preview-phone i {
+        color: #1565c0;
+        width: 16px;
+        flex-shrink: 0;
+    }
 
     .preview-qr {
         flex: 0 0 180px;
@@ -165,8 +166,6 @@
         margin-top: 10px;
         border-radius: 8px;
     }
-
-
 
         .preview-qr img {
             width: 110%;
@@ -238,22 +237,73 @@
 
     #download-card {
         background-color: #ffffff !important;
-        width: 430px;
-        height: 200px; 
-        max-width: 430px;
-        min-width: 430px;
-        min-height: 200px; 
-        max-height: 200px; 
+        width: 600px;
+        min-width: 600px;
+        max-width: 600px;
+        height: auto;
+        min-height: 210px;
         padding: 10px;
         gap: 8px;
         overflow: hidden;
+        display: flex;
+        align-items: stretch;
     }
 
-    .centered-info-block {
+        #download-card .preview-qr {
+            flex: 0 0 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0;
+        }
+
+            #download-card .preview-qr img {
+                width: 100% !important;
+                max-width: 160px;
+                height: auto !important;
+                object-fit: contain;
+            }
+
+        #download-card .preview-left-section {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        #download-card .preview-email,
+        #download-card .preview-phone {
+            max-width: calc(100% - 200px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    @@media (max-width: 768px) {
+        #download-card {
+            width: 430px;
+            min-width: 430px;
+            max-width: 100%;
+        }
+
+            #download-card .preview-qr {
+                flex: 0 0 120px;
+            }
+
+                #download-card .preview-qr img {
+                    max-width: 120px;
+                }
+
+            #download-card .preview-email,
+            #download-card .preview-phone {
+                max-width: calc(100% - 120px);
+                white-space: normal;
+            }
+    }
+
+    #download-card .centered-info-block {
         width: 100%;
         text-align: center;
         margin-top: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 4px;
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -261,30 +311,40 @@
     }
 
     .mavi-numara {
-        color: #1976d2 !important;
-
+        color: #1565c0 !important;
     }
 
     #download-card {
         background-color: #ffffff !important;
-        width: 430px;
-        height: 170px;
-        max-width: 430px;
-        min-width: 430px;
-        min-height: 170px; 
-        max-height: 170px; 
+        width: 600px;
+        height: auto;
+        min-width: 600px;
+        max-width: 600px;
         padding: 10px;
         gap: 8px;
         overflow: hidden;
+        display: flex;
+        align-items: stretch;
     }
 
         #download-card .preview-left-section {
             margin-bottom: 0;
-            gap: 6px;
+            gap: 2px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         #download-card .preview-logo {
-            height: 46px;
+            height: 50px;
+            width: auto;
+            max-height: 40px;
+            object-fit: contain;
+        }
+
+        #download-card .preview-logo {
+            height: 50px;
         }
 
         #download-card .preview-name {
@@ -295,17 +355,21 @@
         #download-card .preview-dept,
         #download-card .preview-title {
             font-size: 0.86rem;
-            line-height: 1.15;
+            line-height: 1.2;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
         }
 
         #download-card .preview-info-col {
-            gap: 4px;
+            gap: 1px;
+            margin-top: auto;
         }
 
         #download-card .preview-email,
         #download-card .preview-phone {
-            font-size: 0.84rem;
-            line-height: 1.15;
+            font-size: 0.9rem;
+            line-height: 1.35;
             margin-left: 0;
             gap: 6px;
             max-width: 100%;
@@ -321,17 +385,18 @@
             }
 
         #download-card .preview-qr {
-            flex: 0 0 138px;
+            flex: 0 0 180px;
             margin-top: 0;
-            align-items: center;
+            align-items: stretch;
             justify-content: center;
+            display: flex;
         }
 
             #download-card .preview-qr img {
                 width: 100% !important;
-                height: auto;
-                max-width: 138px;
-                max-height: 138px;
+                height: 100% !important;
+                max-width: 180px;
+                max-height: none;
                 object-fit: contain;
                 image-rendering: -webkit-optimize-contrast;
                 image-rendering: crisp-edges;
@@ -341,7 +406,6 @@
         #download-card {
             min-width: 430px;
             width: 430px;
-            height: 170px;
         }
     }
 
@@ -350,18 +414,8 @@
     }
 
     #download-card {
-        gap: 6px;
+        gap: 8px;
     }
-
-        #download-card .preview-qr {
-            flex: 0 0 160px;
-        }
-
-            #download-card .preview-qr img {
-                width: 100% !important;
-                max-width: 160px;
-                max-height: 160px;
-            }
 
         #download-card .preview-logo-section {
             width: 100%;
@@ -375,18 +429,110 @@
             object-fit: contain;
         }
 
-  
-    #download-card .bottom-info-section {
-        display: flex;
-        flex-direction: column;
-        gap: 2px; 
+        #download-card .bottom-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-grow: 1;
+        }
+
+        #download-card .preview-info-col {
+            gap: 2px;
+            margin-top: auto;
+        }
+
+        #download-card .preview-email.long-mail a {
+            font-size: 9px;
+            letter-spacing: -0.5px;
+        }
+
+        #download-card .preview-dept {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            line-height: 1.1;
+            max-height: calc(1.1em * 2);
+            margin-bottom: 4px;
+        }
+
+        #download-card .preview-info-col {
+            gap: 4px;
+            align-items: flex-start;
+        }
+
+        #download-card .preview-email,
+        #download-card .preview-phone {
+            margin-left: 10px;
+        }
+
+            #download-card .preview-email a {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+        #download-card .preview-left-section {
+            overflow: visible;
+        }
+
+        #download-card .preview-name {
+            display: inline-block;
+            overflow: visible;
+            white-space: nowrap;
+            line-height: 1.25;
+            padding-bottom: 2px;
+            vertical-align: middle;
+        }
+
+    #download-card {
+        overflow: visible !important;
+        padding-bottom: 6px !important;
     }
 
-  
-    #download-card .preview-info-col {
-        gap: 2px; 
-        margin-top: -4px;
+        #download-card .preview-left-section {
+            overflow: visible !important;
+            padding-bottom: 2px;
+        }
+
+        #download-card .preview-name {
+            display: inline-block;
+            overflow: visible !important;
+            white-space: nowrap;
+            line-height: 1.35 !important;
+            padding-bottom: 4px !important;
+        }
+
+        #download-card,
+        #download-card .preview-left-section,
+        #download-card .bottom-info-section,
+        #download-card .centered_info_block,
+        .preview_card {
+            overflow: visible !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            box-sizing: border-box !important;
+        }
+
+    #download-card {
+        padding-bottom: 10px !important;
     }
+
+        #download-card .preview-name {
+            display: inline-block !important;
+            overflow: visible !important;
+            line-height: 1.35 !important;
+            padding-bottom: 6px !important;
+            vertical-align: baseline !important;
+        }
+
+        #download-card, #download-card * {
+            clip-path: none !important;
+            -webkit-clip-path: none !important;
+            mask: none !important;
+            -webkit-mask: none !important;
+        }
 </style>
 
 <div class="qr-container">
@@ -492,22 +638,17 @@
 
                         </form>
 
-
-
                         @if (ViewBag.IsGenerated == true)
-
                         {
-
                             <hr class="my-4">
 
                             <div class="preview-card" id="download-card">
                                 <div class="preview-left-section">
-                              
+
                                     <div class="preview-logo-section">
                                         <img src="~/HALKODE_LOGO-01.png" alt="Deneme" class="preview-logo" crossorigin="anonymous" />
                                     </div>
-                                    
-                                   
+
                                     <div class="bottom-info-section">
                                         <div class="centered-info-block">
                                             <div class="preview-name">@Model.FirstName @Model.LastName</div>
@@ -529,7 +670,7 @@
 
                                         <div class="preview-info-col">
                                             <div class="preview-email">
-                                                <i class="fas fa-envelope"></i>
+                                                <i class="far fa-envelope" aria-hidden="true"></i>
                                                 <a href="mailto:@Model.Email">@Model.Email</a>
                                             </div>
                                             <div class="preview-phone">
@@ -553,7 +694,6 @@
                                     </div>
                                 </div>
 
-                               
                                 <div class="preview-qr">
                                     <img src="@ViewBag.QrImageData" alt="vCard QR Code" crossorigin="anonymous" />
                                 </div>
@@ -577,7 +717,7 @@
         width: 100%;
         text-align: center;
         margin-top: 8px;
-        margin-bottom: 4px; 
+        margin-bottom: 4px;
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -585,18 +725,15 @@
     }
 
     .mavi-numara {
-        color: #1976d2 !important;
+        color: #1565c0 !important;
     }
 
-  
     #download-card {
         background-color: #ffffff !important;
-        width: 430px;
+        width: 520px;
         height: auto;
-        min-width: 430px;
-        max-width: 430px;
-        min-height: 210px;
-        max-height: none;
+        min-width: 520px;
+        max-width: 520px;
         padding: 10px;
         gap: 8px;
         overflow: hidden;
@@ -606,7 +743,7 @@
 
         #download-card .preview-left-section {
             margin-bottom: 0;
-            gap: 2px; 
+            gap: 2px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -614,7 +751,14 @@
         }
 
         #download-card .preview-logo {
-            height: 46px;
+            height: 40px;
+            width: auto;
+            max-height: 40px;
+            object-fit: contain;
+        }
+
+        #download-card .preview-logo {
+            height: 40px;
         }
 
         #download-card .preview-name {
@@ -622,7 +766,6 @@
             line-height: 1.15;
         }
 
-       
         #download-card .preview-dept,
         #download-card .preview-title {
             font-size: 0.86rem;
@@ -632,17 +775,16 @@
             text-overflow: clip;
         }
 
-        
         #download-card .preview-info-col {
-            gap: 1px; 
-            margin-top: auto; 
+            gap: 1px;
+            margin-top: auto;
         }
 
         #download-card .preview-email,
         #download-card .preview-phone {
-            font-size: 0.84rem;
-            line-height: 1.15;
-            margin-left: 0;
+            font-size: 0.9rem;
+            line-height: 1.17rem;
+            margin-left: 20px;
             gap: 6px;
             max-width: 100%;
             white-space: nowrap;
@@ -656,9 +798,8 @@
                 font-size: 0.9rem;
             }
 
-       
         #download-card .preview-qr {
-            flex: 0 0 180px; 
+            flex: 0 0 180px;
             margin-top: 0;
             align-items: stretch;
             justify-content: center;
@@ -667,9 +808,9 @@
 
             #download-card .preview-qr img {
                 width: 100% !important;
-                height: 100% !important; 
-                max-width: 180px; 
-                max-height: none; 
+                height: 100% !important;
+                max-width: 180px;
+                max-height: none;
                 object-fit: contain;
                 image-rendering: -webkit-optimize-contrast;
                 image-rendering: crisp-edges;
@@ -687,7 +828,7 @@
     }
 
     #download-card {
-        gap: 8px; 
+        gap: 8px;
     }
 
         #download-card .preview-logo-section {
@@ -702,19 +843,110 @@
             object-fit: contain;
         }
 
+        #download-card .bottom-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-grow: 1;
+        }
 
-    #download-card .bottom-info-section {
-        display: flex;
-        flex-direction: column;
-        gap: 2px; 
-        flex-grow: 1; 
+        #download-card .preview-info-col {
+            gap: 2px;
+            margin-top: auto;
+        }
+
+        #download-card .preview-email.long-mail a {
+            font-size: 9px;
+            letter-spacing: -0.5px;
+        }
+
+        #download-card .preview-dept {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            line-height: 1.1;
+            max-height: calc(1.1em * 2);
+            margin-bottom: 4px;
+        }
+
+        #download-card .preview-info-col {
+            gap: 4px;
+            align-items: flex-start;
+        }
+
+        #download-card .preview-email,
+        #download-card .preview-phone {
+            margin-left: 10px;
+        }
+
+            #download-card .preview-email a {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+        #download-card .preview-left-section {
+            overflow: visible;
+        }
+
+        #download-card .preview-name {
+            display: inline-block;
+            overflow: visible;
+            white-space: nowrap;
+            line-height: 1.25;
+            padding-bottom: 2px;
+            vertical-align: middle;
+        }
+
+    #download-card {
+        overflow: visible !important;
+        padding-bottom: 6px !important;
     }
 
- 
-    #download-card .preview-info-col {
-        gap: 2px; 
-        margin-top: auto; 
+        #download-card .preview-left-section {
+            overflow: visible !important;
+            padding-bottom: 2px;
+        }
+
+        #download-card .preview-name {
+            display: inline-block;
+            overflow: visible !important;
+            white-space: nowrap;
+            line-height: 1.35 !important;
+            padding-bottom: 4px !important;
+        }
+
+        #download-card,
+        #download-card .preview-left-section,
+        #download-card .bottom-info-section,
+        #download-card .centered_info_block,
+        .preview_card {
+            overflow: visible !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            box-sizing: border-box !important;
+        }
+
+    #download-card {
+        padding-bottom: 10px !important;
     }
+
+        #download-card .preview-name {
+            display: inline-block !important;
+            overflow: visible !important;
+            line-height: 1.35 !important;
+            padding-bottom: 6px !important;
+            vertical-align: baseline !important;
+        }
+
+        #download-card, #download-card * {
+            clip-path: none !important;
+            -webkit-clip-path: none !important;
+            mask: none !important;
+            -webkit-mask: none !important;
+        }
 </style>
 
 @section Scripts {
@@ -778,12 +1010,10 @@
             const lastName = document.getElementById('LastName')?.value || '';
             const fileName = `${firstName.trim()}_${lastName.trim()}_imza.png`.replace(/\s+/g, '_');
 
-  
             if (document.fonts && document.fonts.ready) {
-                try { await document.fonts.ready; } catch { /* yoksay */ }
+                try { await document.fonts.ready; } catch { }
             }
 
-           
             cardElement.querySelectorAll('img').forEach(img => img.setAttribute('crossorigin', 'anonymous'));
 
             try {
