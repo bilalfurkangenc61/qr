@@ -4,21 +4,50 @@
     ViewData["Title"] = "vCard QR Generator";
     string[] deptLines = Array.Empty<string>();
 
-    if (!string.IsNullOrWhiteSpace(Model?.Department))
+    // Model.Department'ı öncelikle temizliyoruz; böylece hem select hem önizleme aynı temiz verilere dayanır.
+    string sanitizedDept = SanitizeDepartment(Model?.Department ?? string.Empty);
+
+    // Uzun isimlerin listesi — tam eşleşme ile kontrol edilecek (trim, case-insensitive)
+    var longDepartments = new[]
     {
-        var words = Model.Department.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length <= 3)
+        "Proje ve Yazılım Uygulama Yönetimi Md. İş Analizi ve Yazılım",
+        "Proje ve Yazılım Uygulama Yönetimi Md. Proje ve Süreç Yönetimi",
+        "İnsan Kaynakları Organizasyon ve Performans Yönetimi Md. İdari İşler",
+        "Finansal Yönetim İnsan Kaynakları ve İdari İşler Genel Müdür Yardımcılığı",
+        "Finansal Muhasebe ve Vergi Yönetimi Md. Finansal Muhasebe ve Bütçe Yönetimi"
+    };
+
+    // Belirli isim için vurgulama (istemci tarafında da LastName büyük yazılıyor, sunucu tarafında case-insensitive karşılaştırma kullanıyoruz)
+    bool isHighlightedName = false;
+    if (Model != null)
+    {
+        var fullName = (Model.FirstName + " " + Model.LastName).Trim();
+        isHighlightedName = string.Equals(fullName, "Bilal Furkan GENÇ", StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    if (!string.IsNullOrWhiteSpace(sanitizedDept))
+    {
+        if (longDepartments.Any(ld => string.Equals(ld, sanitizedDept, StringComparison.InvariantCultureIgnoreCase)))
         {
-            deptLines = words;
+            // Belirtilen uzun isimler için 3 satıra böl
+            deptLines = SplitIntoLines(sanitizedDept, 3);
         }
         else
         {
-            // Önceki: üç parçaya bölüyordu ve "İşyeri ve" gibi kısa parçalar tek satıra düşüyordu.
-            // Şimdi: maksimum 2 satıra bölüyoruz, böylece bağlaçlar önceki kelimeyle kalır.
-            int chunk = (int)Math.Ceiling(words.Length / 2.0);
-            var line1 = string.Join(' ', words.Take(chunk));
-            var line2 = string.Join(' ', words.Skip(chunk));
-            deptLines = new[] { line1, line2 }.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            var words = sanitizedDept.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length <= 3)
+            {
+                // Kısa (1-3 kelime) isimleri tek satırda tut (önceki sürümde kelimeler ayrı satırlara konuyordu)
+                deptLines = new[] { sanitizedDept };
+            }
+            else
+            {
+                // Diğerleri için maksimum 2 satıra bölüyoruz (yan yana gösterim için tek satır prefer edilebilir)
+                int chunk = (int)Math.Ceiling(words.Length / 2.0);
+                var line1 = string.Join(' ', words.Take(chunk));
+                var line2 = string.Join(' ', words.Skip(chunk));
+                deptLines = new[] { line1, line2 }.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            }
         }
     }
 }
@@ -109,6 +138,18 @@
         text-overflow: ellipsis;
         font-family: Arial;
         font-size: 10px;
+    }
+
+    /* Eğer isim Bilal Furkan GENÇ ise extra sınıfla büyüt */
+    .preview-name.preview-name-large {
+        font-size: 1.45rem;
+        line-height: 1.1;
+        letter-spacing: 0.2px;
+    }
+
+    /* download-card içindeki isim için de vurguyu güçlendir */
+    #download-card .preview-name.preview-name-large {
+        font-size: 1.15rem !important;
     }
 
     /* Burada white-space ve overflow ayarlarını değiştiriyoruz: metnin kırılıp tam görünmesini sağlamak için */
@@ -535,6 +576,18 @@
             mask: none !important;
             -webkit-mask: none !important;
         }
+
+    /* mevcut stiller korunur; preview-dept için iki yardımcı sınıf eklendi */
+    .preview-dept .dept-inline {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+    }
+    .preview-dept .dept-line {
+        display: block;
+        white-space: normal;
+    }
 </style>
 
 <div class="qr-container">
@@ -653,18 +706,18 @@
 
                                     <div class="bottom-info-section">
                                         <div class="centered-info-block">
-                                            <div class="preview-name">@Model.FirstName @Model.LastName</div>
+                                            <div class="preview-name @(isHighlightedName ? "preview-name-large" : "")">@Model.FirstName @Model.LastName</div>
                                             <div class="preview-dept">
-                                                @if (deptLines.Length > 0)
+                                                @if (deptLines.Length > 1)
                                                 {
                                                     foreach (var line in deptLines)
                                                     {
-                                                        <div>@line</div>
+                                                        <div class="dept-line">@line</div>
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    <div>@Model.Department</div>
+                                                    <div class="dept-inline">@sanitizedDept</div>
                                                 }
                                             </div>
                                             <div class="preview-title">@Model.Title</div>
@@ -752,7 +805,7 @@
             justify-content: space-between;
         }
 
-        #download-card .preview-logo {
+        #download_card .preview-logo {
             height: 40px;
             width: auto;
             max-height: 40px;
@@ -783,7 +836,7 @@
         }
 
         #download-card .preview-email,
-        #download-card .preview-phone {
+        #download_card .preview-phone {
             font-size: 0.9rem;
             line-height: 1.17rem;
             margin-left: 20px;
@@ -795,7 +848,7 @@
         }
 
             #download-card .preview-email i,
-            #download-card .preview-phone i {
+            #download_card .preview-phone i {
                 width: 14px;
                 font-size: 0.9rem;
             }
@@ -1063,5 +1116,119 @@
             return $"{number.Substring(0, 4)} {number.Substring(4, 3)} {number.Substring(7, 2)} {number.Substring(9, 2)}";
         }
         return number;
+    }
+
+    // Departman metinlerini temizleyip talimat/yorum içeren parçaları kaldırır.
+    public string SanitizeDepartment(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        var s = input.Trim();
+
+        // "3 satır ..." gibi ifadeleri kaldır
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\d+\s*sat(ı|i)r.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // "alt alta ..." gibi ifadeleri kaldır
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"alt\s*alta.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // "gibi ifadeler ..." vb. ifadeleri kaldır
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"gibi\s+ifad.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Üç nokta veya aşırı noktalama temizle
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\.\.\.+", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Parantez içindeki açıklamaları kaldır (ör. (yazılmalı))
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"[\[\(\{].*?[\]\)\}]", "", System.Text.RegularExpressions.RegexOptions.Singleline);
+
+        // Fazla boşlukları tek boşluğa indir ve kırp
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\s{2,}", " ").Trim();
+
+        // Sonundaki noktalama işaretlerini temizle
+        s = s.TrimEnd(new char[] { ',', ';', ':', '.' });
+
+        return s;
+    }
+
+    // Geliştirilmiş satır bölme: önce doğal ayırıcılarla (nokta/virgül/kısaltma) böl, yetmezse kelime/karakter hedefli dengeli bölme yap.
+    public string[] SplitIntoLines(string input, int lines)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return Array.Empty<string>();
+        input = input.Trim();
+
+        // 1) Önce noktalama/kısaltma bazlı segmentlere ayır (örn. "Md.", "." sonrası)
+        var segments = System.Text.RegularExpressions.Regex
+            .Split(input, @"\s*(?:[;,\u2013\u2014\-\/]|\.\s+)\s*")
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
+
+        if (segments.Count >= lines)
+        {
+            // Segmentleri mümkün olduğunca doğal parçalara göre grupla
+            var resultSegs = new List<string>(lines);
+            int baseChunk = segments.Count / lines;
+            int rem = segments.Count % lines;
+            int idx = 0;
+            for (int i = 0; i < lines; i++)
+            {
+                int take = baseChunk + (i < rem ? 1 : 0);
+                if (take <= 0) continue;
+                resultSegs.Add(string.Join(" ", segments.Skip(idx).Take(take)));
+                idx += take;
+            }
+            return resultSegs.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+        }
+
+        // 2) Yeterli segment yoksa kelimelere göre dengeli böl (kelime bütünlüğü korunur)
+        var words = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length <= lines)
+        {
+            // Çok kısaysa her kelime ayrı satır yerine tek satır olarak bırak
+            return new[] { input };
+        }
+
+        int totalChars = input.Length;
+        int target = Math.Max(10, (int)Math.Ceiling((double)totalChars / lines)); // aşırı küçük hedefleri engelle
+
+        var result = new List<string>();
+        var currentWords = new List<string>();
+        int currentLen = 0;
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            var w = words[i];
+            int wLen = w.Length + (currentWords.Count > 0 ? 1 : 0); // boşluk dahil
+            // Eğer mevcut satıra eklemek hedefi aşarsa ve henüz gerekli satır sayısına ulaşmadıysak yeni satır başlat
+            if (currentLen + wLen > target && result.Count < lines - 1)
+            {
+                result.Add(string.Join(" ", currentWords));
+                currentWords.Clear();
+                currentLen = 0;
+            }
+            currentWords.Add(w);
+            currentLen += wLen;
+        }
+
+        if (currentWords.Count > 0)
+            result.Add(string.Join(" ", currentWords));
+
+        // Eğer çıkan satır sayısı istenenden az ise mümkün olduğunca parçala (kelime bazlı)
+        if (result.Count < lines)
+        {
+            // basit yeniden dağıtma: bölünmüş son satırı alıp gerekirse ikiye ayır
+            var flatWords = string.Join(" ", result).Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            result.Clear();
+            int baseW = flatWords.Count / lines;
+            int remW = flatWords.Count % lines;
+            int idx = 0;
+            for (int i = 0; i < lines; i++)
+            {
+                int take = baseW + (i < remW ? 1 : 0);
+                if (take <= 0) continue;
+                result.Add(string.Join(" ", flatWords.Skip(idx).Take(take)));
+                idx += take;
+            }
+        }
+
+        return result.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
     }
 }
