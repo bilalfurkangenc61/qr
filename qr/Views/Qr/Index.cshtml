@@ -4,10 +4,8 @@
     ViewData["Title"] = "vCard QR Generator";
     string[] deptLines = Array.Empty<string>();
 
-    // Model.Department'ı öncelikle temizliyoruz; böylece hem select hem önizleme aynı temiz verilere dayanır.
     string sanitizedDept = SanitizeDepartment(Model?.Department ?? string.Empty);
 
-    // Uzun isimlerin listesi — tam eşleşme ile kontrol edilecek (trim, case-insensitive)
     var longDepartments = new[]
     {
         "Proje ve Yazılım Uygulama Yönetimi Md. İş Analizi ve Yazılım",
@@ -17,7 +15,6 @@
         "Finansal Muhasebe ve Vergi Yönetimi Md. Finansal Muhasebe ve Bütçe Yönetimi"
     };
 
-    // Belirli isim için vurgulama (istemci tarafında da LastName büyük yazılıyor, sunucu tarafında case-insensitive karşılaştırma kullanıyoruz)
     bool isHighlightedName = false;
     if (Model != null)
     {
@@ -25,33 +22,26 @@
         isHighlightedName = string.Equals(fullName, "Bilal Furkan GENÇ", StringComparison.InvariantCultureIgnoreCase);
     }
 
+    bool isLongDepartment = false;
+
     if (!string.IsNullOrWhiteSpace(sanitizedDept))
     {
-        if (longDepartments.Any(ld => string.Equals(ld, sanitizedDept, StringComparison.InvariantCultureIgnoreCase)))
+        isLongDepartment = longDepartments.Any(ld => string.Equals(ld, sanitizedDept, StringComparison.InvariantCultureIgnoreCase));
+
+        if (isLongDepartment)
         {
-            // Belirtilen uzun isimler için 3 satıra böl
-            deptLines = SplitIntoLines(sanitizedDept, 3);
+            // Uzun olanlar: 3 satıra dengeli böl
+            deptLines = SplitIntoLines(sanitizedDept, 2)
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToArray();
         }
         else
         {
-            var words = sanitizedDept.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length <= 3)
-            {
-                // Kısa (1-3 kelime) isimleri tek satırda tut (önceki sürümde kelimeler ayrı satırlara konuyordu)
-                deptLines = new[] { sanitizedDept };
-            }
-            else
-            {
-                // Diğerleri için maksimum 2 satıra bölüyoruz (yan yana gösterim için tek satır prefer edilebilir)
-                int chunk = (int)Math.Ceiling(words.Length / 2.0);
-                var line1 = string.Join(' ', words.Take(chunk));
-                var line2 = string.Join(' ', words.Skip(chunk));
-                deptLines = new[] { line1, line2 }.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-            }
+            // Diğerleri: Tek satır (hiç bölünmeden)
+            deptLines = new[] { sanitizedDept };
         }
     }
 }
-
 
 <style>
     .qr-container {
@@ -140,19 +130,16 @@
         font-size: 10px;
     }
 
-    /* Eğer isim Bilal Furkan GENÇ ise extra sınıfla büyüt */
     .preview-name.preview-name-large {
         font-size: 1.45rem;
         line-height: 1.1;
         letter-spacing: 0.2px;
     }
 
-    /* download-card içindeki isim için de vurguyu güçlendir */
     #download-card .preview-name.preview-name-large {
-        font-size: 1.15rem !important;
+        font-size: 1.25rem !important;
     }
 
-    /* Burada white-space ve overflow ayarlarını değiştiriyoruz: metnin kırılıp tam görünmesini sağlamak için */
     .preview-dept, .preview-title {
         color: #1565c0;
         margin: 0;
@@ -163,6 +150,8 @@
         text-overflow: clip;
         font-family: Arial;
         font-size: 12px;
+        text-align:center;
+        
     }
 
     .preview-phone {
@@ -191,9 +180,9 @@
         margin-right: 10px;
     }
 
-        .preview-email a:hover {
-            text-decoration: underline;
-        }
+    .preview-email a:hover {
+        text-decoration: underline;
+    }
 
     .preview-email i, .preview-phone i {
         color: #1565c0;
@@ -210,16 +199,16 @@
         border-radius: 8px;
     }
 
-        .preview-qr img {
-            width: 110%;
-            height: auto;
-            max-width: 600px;
-            object-fit: contain;
-            border-radius: 4px;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
-        }
+    .preview-qr img {
+        width: 110%;
+        height: auto;
+        max-width: 600px;
+        object-fit: contain;
+        border-radius: 4px;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
+    }
 
     @@media (max-width: 768px) {
         .preview-card {
@@ -247,10 +236,10 @@
             height: 200px;
         }
 
-            .preview-qr img {
-                max-width: 180px;
-                max-height: 180px;
-            }
+        .preview-qr img {
+            max-width: 180px;
+            max-height: 180px;
+        }
 
         .preview-email, .preview-phone {
             justify-content: center;
@@ -265,10 +254,7 @@
         }
     }
 
-    .preview-card {
-        position: relative;
-        overflow: visible;
-    }
+    .preview-card { position: relative; overflow: visible; }
 
     @@media print {
         .preview-card {
@@ -292,33 +278,30 @@
         align-items: stretch;
     }
 
-        #download-card .preview-qr {
-            flex: 0 0 160px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 0;
-        }
+    #download-card .preview-qr {
+        flex: 0 0 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0;
+    }
 
-            #download-card .preview-qr img {
-                width: 100% !important;
-                max-width: 160px;
-                height: auto !important;
-                object-fit: contain;
-            }
+    #download-card .preview-qr img {
+        width: 100% !important;
+        max-width: 160px;
+        height: auto !important;
+        object-fit: contain;
+    }
 
-        #download-card .preview-left-section {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
+    #download-card .preview-left-section { flex: 1 1 auto; min-width: 0; }
 
-        #download-card .preview-email,
-        #download-card .preview-phone {
-            max-width: calc(100% - 200px);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    #download-card .preview-email,
+    #download-card .preview-phone {
+        max-width: calc(100% - 200px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
     @@media (max-width: 768px) {
         #download-card {
@@ -327,19 +310,13 @@
             max-width: 100%;
         }
 
-            #download-card .preview-qr {
-                flex: 0 0 120px;
-            }
-
-                #download-card .preview-qr img {
-                    max-width: 120px;
-                }
-
-            #download-card .preview-email,
-            #download-card .preview-phone {
-                max-width: calc(100% - 120px);
-                white-space: normal;
-            }
+        #download-card .preview-qr { flex: 0 0 120px; }
+        #download-card .preview-qr img { max-width: 120px; }
+        #download-card .preview-email,
+        #download-card .preview-phone {
+            max-width: calc(100% - 120px);
+            white-space: normal;
+        }
     }
 
     #download-card .centered-info-block {
@@ -353,231 +330,178 @@
         margin-right: 60px;
     }
 
-    .mavi-numara {
-        color: #1565c0 !important;
-    }
+    .mavi-numara { color: #1565c0 !important; }
 
-    #download-card {
-        background-color: #ffffff !important;
-        width: 600px;
-        height: auto;
-        min-width: 600px;
-        max-width: 600px;
-        padding: 10px;
-        gap: 8px;
-        overflow: hidden;
+    #download-card .preview-left-section {
+        margin-bottom: 0;
+        gap: 2px;
+        flex: 1;
         display: flex;
-        align-items: stretch;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-        #download-card .preview-left-section {
-            margin-bottom: 0;
-            gap: 2px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    #download-card .preview-logo {
+        height: 50px;
+        width: auto;
+        max-height: 40px;
+        object-fit: contain;
+    }
 
-        #download-card .preview-logo {
-            height: 50px;
-            width: auto;
-            max-height: 40px;
-            object-fit: contain;
-        }
+    #download-card .preview-logo { height: 50px; }
 
-        #download-card .preview-logo {
-            height: 50px;
-        }
+    #download-card .preview-name { font-size: 0.95rem; line-height: 1.15; }
 
-        #download-card .preview-name {
-            font-size: 0.95rem;
-            line-height: 1.15;
-        }
+    #download-card .preview-dept,
+    #download-card .preview-title {
+        font-size: 0.86rem;
+        line-height: 1.2;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
 
-        #download-card .preview-dept,
-        #download-card .preview-title {
-            font-size: 0.86rem;
-            line-height: 1.2;
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-        }
+    #download-card .preview-info-col { gap: 1px; margin-top: auto; }
 
-        #download-card .preview-info-col {
-            gap: 1px;
-            margin-top: auto;
-        }
+    #download-card .preview-email,
+    #download-card .preview-phone {
+        font-size: 0.9rem;
+        line-height: 1.35;
+        margin-left: 0;
+        gap: 6px;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-        #download-card .preview-email,
-        #download-card .preview-phone {
-            font-size: 0.9rem;
-            line-height: 1.35;
-            margin-left: 0;
-            gap: 6px;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    #download-card .preview-email i,
+    #download-card .preview-phone i {
+        width: 14px;
+        font-size: 0.9rem;
+    }
 
-            #download-card .preview-email i,
-            #download-card .preview-phone i {
-                width: 14px;
-                font-size: 0.9rem;
-            }
+    #download-card .preview-qr {
+        flex: 0 0 180px;
+        margin-top: 0;
+        align-items: stretch;
+        justify-content: center;
+        display: flex;
+    }
 
-        #download-card .preview-qr {
-            flex: 0 0 180px;
-            margin-top: 0;
-            align-items: stretch;
-            justify-content: center;
-            display: flex;
-        }
-
-            #download-card .preview-qr img {
-                width: 100% !important;
-                height: 100% !important;
-                max-width: 180px;
-                max-height: none;
-                object-fit: contain;
-                image-rendering: -webkit-optimize-contrast;
-                image-rendering: crisp-edges;
-            }
+    #download-card .preview-qr img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 180px;
+        max-height: none;
+        object-fit: contain;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
 
     @@media (max-width: 768px) {
-        #download-card {
-            min-width: 430px;
-            width: 430px;
-        }
+        #download-card { min-width: 430px; width: 430px; }
     }
 
-    #download-card .centered-info-block {
-        margin-right: 0;
+    #download-card .centered-info-block { margin-right: 0; }
+
+    #download-card { gap: 8px; }
+
+    #download-card .preview-logo-section { width: 100%; }
+
+    #download-card .preview-logo {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 52px;
+        object-fit: contain;
     }
 
-    #download-card {
-        gap: 8px;
+    #download-card .bottom-info-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-grow: 1;
     }
 
-        #download-card .preview-logo-section {
-            width: 100%;
-        }
+    #download-card .preview-info-col { gap: 2px; margin-top: auto; }
 
-        #download-card .preview-logo {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-height: 52px;
-            object-fit: contain;
-        }
+    #download-card .preview-email.long-mail a {
+        font-size: 9px;
+        letter-spacing: -0.5px;
+    }
 
-        #download-card .bottom-info-section {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            flex-grow: 1;
-        }
+    #download-card .preview-dept {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        line-height: 1.1;
+        max-height: calc(1.1em * 2);
+        margin-bottom: 4px;
+    }
 
-        #download-card .preview-info-col {
-            gap: 2px;
-            margin-top: auto;
-        }
+    #download-card .preview-info-col { gap: 4px; align-items: flex-start; }
 
-        #download-card .preview-email.long-mail a {
-            font-size: 9px;
-            letter-spacing: -0.5px;
-        }
+    #download-card .preview-email,
+    #download-card .preview-phone { margin-left: 10px; }
 
-        #download-card .preview-dept {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: normal;
-            line-height: 1.1;
-            max-height: calc(1.1em * 2);
-            margin-bottom: 4px;
-        }
+    #download_card .preview-email a {
+        white-space: normal;
+        word-break: break-word;
+    }
 
-        #download-card .preview-info-col {
-            gap: 4px;
-            align-items: flex-start;
-        }
+    #download-card .preview-left-section { overflow: visible; }
 
-        #download-card .preview-email,
-        #download-card .preview-phone {
-            margin-left: 10px;
-        }
+    #download-card .preview-name {
+        display: inline-block;
+        overflow: visible;
+        white-space: nowrap;
+        line-height: 1.25;
+        padding-bottom: 2px;
+        vertical-align: middle;
+    }
 
-            #download-card .preview-email a {
-                white-space: normal;
-                word-break: break-word;
-            }
+    #download-card { overflow: visible !important; padding-bottom: 6px !important; }
 
-        #download-card .preview-left-section {
-            overflow: visible;
-        }
-
-        #download-card .preview-name {
-            display: inline-block;
-            overflow: visible;
-            white-space: nowrap;
-            line-height: 1.25;
-            padding-bottom: 2px;
-            vertical-align: middle;
-        }
-
-    #download-card {
+    #download-card .preview-left-section { overflow: visible !important; padding-bottom: 2px; }
+    #download-card .preview-name {
+        display: inline-block;
         overflow: visible !important;
+        white-space: nowrap;
+        line-height: 1.35 !important;
+        padding-bottom: 4px !important;
+    }
+    #download-card,
+    #download-card .preview-left-section,
+    #download_card .bottom_info_section,
+    #download-card .centered_info_block,
+    .preview_card {
+        overflow: visible !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        box-sizing: border-box !important;
+    }
+
+    #download-card { padding-bottom: 10px !important; }
+
+    #download-card .preview-name {
+        display: inline-block !important;
+        overflow: visible !important;
+        line-height: 1.35 !important;
         padding-bottom: 6px !important;
+        vertical-align: baseline !important;
     }
 
-        #download-card .preview-left-section {
-            overflow: visible !important;
-            padding-bottom: 2px;
-        }
-
-        #download-card .preview-name {
-            display: inline-block;
-            overflow: visible !important;
-            white-space: nowrap;
-            line-height: 1.35 !important;
-            padding-bottom: 4px !important;
-        }
-
-        #download-card,
-        #download-card .preview-left-section,
-        #download-card .bottom-info-section,
-        #download-card .centered_info_block,
-        .preview_card {
-            overflow: visible !important;
-            transform: none !important;
-            -webkit-transform: none !important;
-            box-sizing: border-box !important;
-        }
-
-    #download-card {
-        padding-bottom: 10px !important;
+    #download-card, #download-card * {
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        mask: none !important;
+        -webkit-mask: none !important;
     }
 
-        #download-card .preview-name {
-            display: inline-block !important;
-            overflow: visible !important;
-            line-height: 1.35 !important;
-            padding-bottom: 6px !important;
-            vertical-align: baseline !important;
-        }
-
-        #download-card, #download-card * {
-            clip-path: none !important;
-            -webkit-clip-path: none !important;
-            mask: none !important;
-            -webkit-mask: none !important;
-        }
-
-    /* mevcut stiller korunur; preview-dept için iki yardımcı sınıf eklendi */
     .preview-dept .dept-inline {
         display: inline-block;
         white-space: nowrap;
@@ -636,61 +560,36 @@
                                         }
                                     </select>
                                 </div>
-
                             </div>
 
                             <div class="row">
-
                                 <div class="col-md-6 mb-3">
-
                                     <label asp-for="MobilePhone" class="form-label fw-bold text-primary">Cep</label>
-
                                     <input asp-for="MobilePhone" class="form-control" placeholder="05XX XXX XX XX" maxlength="14" />
-
                                 </div>
-
                                 <div class="col-md-6 mb-3">
-
                                     <label asp-for="LandlinePhone" class="form-label fw-bold text-primary">Sabit</label>
-
                                     <input asp-for="LandlinePhone" class="form-control" placeholder="0XXX XXX XX XX" maxlength="14" />
-
                                 </div>
-
                             </div>
 
                             <div class="row">
-
                                 <div class="col-md-6 mb-3">
-
                                     <label asp-for="Email" class="form-label fw-bold text-primary">E-posta *</label>
-
                                     <input asp-for="Email" class="form-control" type="email" />
-
                                 </div>
-
                                 <div class="col-md-6 mb-3">
-
                                     <label asp-for="OutputType" class="form-label fw-bold text-primary">Format</label>
-
                                     <select asp-for="OutputType" class="form-select">
-
                                         <option value="PNG">PNG</option>
-
                                         <option value="SVG">SVG</option>
-
                                     </select>
-
                                 </div>
-
                             </div>
 
                             <div class="text-center mt-3">
-
                                 <button type="submit" class="btn btn-primary btn-lg px-5">İmza Oluştur</button>
-
                             </div>
-
                         </form>
 
                         @if (ViewBag.IsGenerated == true)
@@ -699,7 +598,6 @@
 
                             <div class="preview-card" id="download-card">
                                 <div class="preview-left-section">
-
                                     <div class="preview-logo-section">
                                         <img src="~/HALKODE_LOGO-01.png" alt="Deneme" class="preview-logo" crossorigin="anonymous" />
                                     </div>
@@ -707,7 +605,7 @@
                                     <div class="bottom-info-section">
                                         <div class="centered-info-block">
                                             <div class="preview-name @(isHighlightedName ? "preview-name-large" : "")">@Model.FirstName @Model.LastName</div>
-                                            <div class="preview-dept">
+                                            <div class="preview-dept @(isLongDepartment ? "long-dept" : "single-dept")">
                                                 @if (deptLines.Length > 1)
                                                 {
                                                     foreach (var line in deptLines)
@@ -779,9 +677,7 @@
         margin-right: 60px;
     }
 
-    .mavi-numara {
-        color: #1565c0 !important;
-    }
+    .mavi-numara { color: #1565c0 !important; }
 
     #download-card {
         background-color: #ffffff !important;
@@ -796,218 +692,230 @@
         align-items: stretch;
     }
 
-        #download-card .preview-left-section {
-            margin-bottom: 0;
-            gap: 2px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    #download-card .preview-left-section {
+        margin-bottom: 0;
+        gap: 2px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
 
-        #download_card .preview-logo {
-            height: 40px;
-            width: auto;
-            max-height: 40px;
-            object-fit: contain;
-        }
+    #download_card .preview-logo {
+        height: 40px;
+        width: auto;
+        max-height: 40px;
+        object-fit: contain;
+    }
 
-        #download-card .preview-logo {
-            height: 40px;
-        }
+    #download-card .preview-logo { height: 40px; }
 
-        #download-card .preview-name {
-            font-size: 0.95rem;
-            line-height: 1.15;
-        }
+    #download-card .preview-name { font-size: 0.95rem; line-height: 2.15; }
 
-        #download-card .preview-dept,
-        #download-card .preview-title {
-            font-size: 0.86rem;
-            line-height: 1.2;
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-        }
+    #download-card .preview-dept,
+    #download-card .preview-title {
+        font-size: 0.86rem;
+        line-height: 1.2;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
 
-        #download-card .preview-info-col {
-            gap: 1px;
-            margin-top: auto;
-        }
+    #download-card .preview-info-col { gap: 1px; margin-top: auto; }
 
-        #download-card .preview-email,
-        #download_card .preview-phone {
-            font-size: 0.9rem;
-            line-height: 1.17rem;
-            margin-left: 20px;
-            gap: 6px;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    #download-card .preview-email,
+    #download_card .preview-phone {
+        font-size: 0.9rem;
+        line-height: 1.17rem;
+        margin-left: 20px;
+        gap: 6px;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-            #download-card .preview-email i,
-            #download_card .preview-phone i {
-                width: 14px;
-                font-size: 0.9rem;
-            }
+    #download-card .preview-email i,
+    #download_card .preview-phone i {
+        width: 14px;
+        font-size: 0.9rem;
+    }
 
-        #download-card .preview-qr {
-            flex: 0 0 180px;
-            margin-top: 0;
-            align-items: stretch;
-            justify-content: center;
-            display: flex;
-        }
+    #download-card .preview-qr {
+        flex: 0 0 180px;
+        margin-top: 0;
+        align-items: stretch;
+        justify-content: center;
+        display: flex;
+    }
 
-            #download-card .preview-qr img {
-                width: 100% !important;
-                height: 100% !important;
-                max-width: 180px;
-                max-height: none;
-                object-fit: contain;
-                image-rendering: -webkit-optimize-contrast;
-                image-rendering: crisp-edges;
-            }
+    #download-card .preview-qr img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 180px;
+        max-height: none;
+        object-fit: contain;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
 
     @@media (max-width: 768px) {
-        #download-card {
-            min-width: 430px;
-            width: 430px;
-        }
+        #download-card { min-width: 430px; width: 430px; }
     }
 
-    #download-card .centered-info-block {
-        margin-right: 0;
+    #download-card .centered-info-block { margin-right: 0; }
+
+    #download-card { gap: 8px; }
+
+    #download-card .preview-logo-section { width: 100%; }
+
+    #download-card .preview-logo {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 52px;
+        object-fit: contain;
     }
 
-    #download-card {
-        gap: 8px;
+    #download-card .bottom-info-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-grow: 1;
     }
 
-        #download-card .preview-logo-section {
-            width: 100%;
-        }
+    #download-card .preview-info-col { gap: 2px; margin-top: auto; }
 
-        #download-card .preview-logo {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-height: 52px;
-            object-fit: contain;
-        }
+    #download-card .preview-email.long-mail a {
+        font-size: 9px;
+        letter-spacing: -0.5px;
+    }
 
-        #download-card .bottom-info-section {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            flex-grow: 1;
-        }
+    #download-card .preview-dept {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        line-height: 1.1;
+        max-height: calc(1.1em * 2);
+        margin-bottom: 4px;
+    }
 
-        #download-card .preview-info-col {
-            gap: 2px;
-            margin-top: auto;
-        }
+    #download-card .preview-info-col { gap: 4px; align-items: flex-start; }
 
-        #download-card .preview-email.long-mail a {
-            font-size: 9px;
-            letter-spacing: -0.5px;
-        }
+    #download-card .preview-email,
+    #download_card .preview-phone { margin-left: 10px; }
 
-        #download-card .preview-dept {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: normal;
-            line-height: 1.1;
-            max-height: calc(1.1em * 2);
-            margin-bottom: 4px;
-        }
+    #download_card .preview-email a {
+        white-space: normal;
+        word-break: break-word;
+    }
 
-        #download-card .preview-info-col {
-            gap: 4px;
-            align-items: flex-start;
-        }
+    #download-card .preview-left-section { overflow: visible; }
 
-        #download-card .preview-email,
-        #download-card .preview-phone {
-            margin-left: 10px;
-        }
+    #download-card .preview-name {
+        display: inline-block;
+        overflow: visible;
+        white-space: nowrap;
+        line-height: 2.25;
+        padding-bottom: 2px;
+        vertical-align: middle;
+    }
 
-            #download-card .preview-email a {
-                white-space: normal;
-                word-break: break-word;
-            }
+    #download-card { overflow: visible !important; padding-bottom: 6px !important; }
 
-        #download-card .preview-left-section {
-            overflow: visible;
-        }
-
-        #download-card .preview-name {
-            display: inline-block;
-            overflow: visible;
-            white-space: nowrap;
-            line-height: 1.25;
-            padding-bottom: 2px;
-            vertical-align: middle;
-        }
-
-    #download-card {
+    #download-card .preview-left-section { overflow: visible !important; padding-bottom: 2px; }
+    #download-card .preview-name {
+        display: inline-block;
         overflow: visible !important;
+        white-space: nowrap;
+        line-height: 1.35 !important;
+        padding-bottom: 4px !important;
+    }
+    #download-card,
+    #download-card .preview-left-section,
+    #download_card .bottom_info_section,
+    #download-card .centered_info_block,
+    .preview_card {
+        overflow: visible !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        box-sizing: border-box !important;
+    }
+
+    #download-card { padding-bottom: 10px !important; }
+
+    #download-card .preview-name {
+        display: inline-block !important;
+        overflow: visible !important;
+        line-height: 1.35 !important;
         padding-bottom: 6px !important;
+        vertical-align: baseline !important;
     }
 
-        #download-card .preview-left-section {
-            overflow: visible !important;
-            padding-bottom: 2px;
-        }
-
-        #download-card .preview-name {
-            display: inline-block;
-            overflow: visible !important;
-            white-space: nowrap;
-            line-height: 1.35 !important;
-            padding-bottom: 4px !important;
-        }
-
-        #download-card,
-        #download-card .preview-left-section,
-        #download-card .bottom-info-section,
-        #download-card .centered_info_block,
-        .preview_card {
-            overflow: visible !important;
-            transform: none !important;
-            -webkit-transform: none !important;
-            box-sizing: border-box !important;
-        }
-
-    #download-card {
-        padding-bottom: 10px !important;
+    #download-card, #download-card * {
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        mask: none !important;
+        -webkit-mask: none !important;
     }
 
-        #download-card .preview-name {
-            display: inline-block !important;
-            overflow: visible !important;
-            line-height: 1.35 !important;
-            padding-bottom: 6px !important;
-            vertical-align: baseline !important;
-        }
+    .preview-dept .dept-inline {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+    }
+    .preview-dept .dept-line {
+        display: block;
+        white-space: normal;
+    }
+</style>
 
-        #download-card, #download-card * {
-            clip-path: none !important;
-            -webkit-clip-path: none !important;
-            mask: none !important;
-            -webkit-mask: none !important;
+
+<div class="preview-dept @(isLongDepartment ? "long-dept" : "single-dept")">
+    @if (deptLines.Length > 1)
+    {
+        foreach (var line in deptLines)
+        {
+            <div class="dept-line">@line</div>
         }
+    }
+    else
+    {
+        <div class="dept-inline">@sanitizedDept</div>
+    }
+</div>
+
+<style>
+
+.preview-dept.single-dept {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#download-card .preview-dept.single-dept {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview-dept.long-dept,
+#download-card .preview-dept.long-dept {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.12;
+}
+.preview-dept.long-dept .dept-line {
+    margin: 0;
+}
 </style>
 
 @section Scripts {
-
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const lastNameInput = document.getElementById('LastName');
@@ -1109,52 +1017,32 @@
 @functions {
     public string FormatPhoneNumberForDisplay(string number)
     {
-        if (string.IsNullOrWhiteSpace(number)) { return ""; }
-        if (number.Length == 10) { number = "0" + number; }
+        if (string.IsNullOrWhiteSpace(number)) return "";
+        if (number.Length == 10) number = "0" + number;
         if (number.Length == 11)
-        {
             return $"{number.Substring(0, 4)} {number.Substring(4, 3)} {number.Substring(7, 2)} {number.Substring(9, 2)}";
-        }
         return number;
     }
 
-    // Departman metinlerini temizleyip talimat/yorum içeren parçaları kaldırır.
     public string SanitizeDepartment(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
         var s = input.Trim();
-
-        // "3 satır ..." gibi ifadeleri kaldır
         s = System.Text.RegularExpressions.Regex.Replace(s, @"\d+\s*sat(ı|i)r.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        // "alt alta ..." gibi ifadeleri kaldır
         s = System.Text.RegularExpressions.Regex.Replace(s, @"alt\s*alta.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        // "gibi ifadeler ..." vb. ifadeleri kaldır
         s = System.Text.RegularExpressions.Regex.Replace(s, @"gibi\s+ifad.*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        // Üç nokta veya aşırı noktalama temizle
         s = System.Text.RegularExpressions.Regex.Replace(s, @"\.\.\.+", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        // Parantez içindeki açıklamaları kaldır (ör. (yazılmalı))
         s = System.Text.RegularExpressions.Regex.Replace(s, @"[\[\(\{].*?[\]\)\}]", "", System.Text.RegularExpressions.RegexOptions.Singleline);
-
-        // Fazla boşlukları tek boşluğa indir ve kırp
         s = System.Text.RegularExpressions.Regex.Replace(s, @"\s{2,}", " ").Trim();
-
-        // Sonundaki noktalama işaretlerini temizle
         s = s.TrimEnd(new char[] { ',', ';', ':', '.' });
-
         return s;
     }
 
-    // Geliştirilmiş satır bölme: önce doğal ayırıcılarla (nokta/virgül/kısaltma) böl, yetmezse kelime/karakter hedefli dengeli bölme yap.
     public string[] SplitIntoLines(string input, int lines)
     {
         if (string.IsNullOrWhiteSpace(input)) return Array.Empty<string>();
         input = input.Trim();
 
-        // 1) Önce noktalama/kısaltma bazlı segmentlere ayır (örn. "Md.", "." sonrası)
         var segments = System.Text.RegularExpressions.Regex
             .Split(input, @"\s*(?:[;,\u2013\u2014\-\/]|\.\s+)\s*")
             .Select(s => s.Trim())
@@ -1163,7 +1051,6 @@
 
         if (segments.Count >= lines)
         {
-            // Segmentleri mümkün olduğunca doğal parçalara göre grupla
             var resultSegs = new List<string>(lines);
             int baseChunk = segments.Count / lines;
             int rem = segments.Count % lines;
@@ -1178,26 +1065,20 @@
             return resultSegs.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
         }
 
-        // 2) Yeterli segment yoksa kelimelere göre dengeli böl (kelime bütünlüğü korunur)
         var words = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (words.Length <= lines)
-        {
-            // Çok kısaysa her kelime ayrı satır yerine tek satır olarak bırak
             return new[] { input };
-        }
 
         int totalChars = input.Length;
-        int target = Math.Max(10, (int)Math.Ceiling((double)totalChars / lines)); // aşırı küçük hedefleri engelle
+        int target = Math.Max(10, (int)Math.Ceiling((double)totalChars / lines));
 
         var result = new List<string>();
         var currentWords = new List<string>();
         int currentLen = 0;
 
-        for (int i = 0; i < words.Length; i++)
+        foreach (var w in words)
         {
-            var w = words[i];
-            int wLen = w.Length + (currentWords.Count > 0 ? 1 : 0); // boşluk dahil
-            // Eğer mevcut satıra eklemek hedefi aşarsa ve henüz gerekli satır sayısına ulaşmadıysak yeni satır başlat
+            int wLen = w.Length + (currentWords.Count > 0 ? 1 : 0);
             if (currentLen + wLen > target && result.Count < lines - 1)
             {
                 result.Add(string.Join(" ", currentWords));
@@ -1211,10 +1092,8 @@
         if (currentWords.Count > 0)
             result.Add(string.Join(" ", currentWords));
 
-        // Eğer çıkan satır sayısı istenenden az ise mümkün olduğunca parçala (kelime bazlı)
         if (result.Count < lines)
         {
-            // basit yeniden dağıtma: bölünmüş son satırı alıp gerekirse ikiye ayır
             var flatWords = string.Join(" ", result).Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             result.Clear();
             int baseW = flatWords.Count / lines;
